@@ -1,0 +1,41 @@
+# Demo Lakehouse//RT + Zerobus · MedPrime Residência (simulado nacional ao vivo)
+bundle:
+  name: demo-zerobus-lakehousert
+
+include:
+  - resources/*.yml
+  # Targets locais (não versionados): copie databricks.local.yml.example para databricks.local.yml
+  - "*.local.yml"
+
+sync:
+  exclude:
+    - .venv
+    - "**/__pycache__"
+    - docs
+    - scripts
+
+variables:
+  catalog:
+    description: Catálogo do Unity Catalog onde o schema da demo será criado
+  schema:
+    description: Schema da demo (criado pelo job de setup)
+    default: rt_simulado
+  app_name:
+    description: Nome do Databricks App (único no workspace)
+    default: medprime-rt-simulado
+  rt_warehouse_id:
+    description: Warehouse Lakehouse//RT (tipo Real-Time) — resolvido pelo nome
+    lookup:
+      warehouse: lakehouse-rt
+  dbsql_warehouse_id:
+    description: Warehouse DBSQL serverless (escritas da demo e comparativo) — resolvido pelo nome
+    lookup:
+      warehouse: Serverless Starter Warehouse
+
+targets:
+  # Genérico: use com -p <profile> e --var catalog=<catalogo> (ou crie um target em databricks.local.yml)
+  dev:
+    mode: development
+    default: true
+    presets:
+      name_prefix: ""

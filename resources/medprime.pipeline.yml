@@ -1,0 +1,11 @@
+resources:
+  pipelines:
+    medprime_gold:
+      name: medprime-rt-gold-${var.schema}
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      photon: true
+      libraries:
+        - file:
+            path: ../src/pipeline/gold.sql

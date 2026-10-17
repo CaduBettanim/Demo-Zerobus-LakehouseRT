@@ -1,0 +1,26 @@
+resources:
+  apps:
+    medprime_rt:
+      name: ${var.app_name}
+      description: "MedPrime Residência – Simulado Nacional ao vivo (Lakehouse//RT + Zerobus)"
+      source_code_path: ../src/app
+      config:
+        command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+        env:
+          - name: RT_WAREHOUSE_ID
+            value_from: rt-warehouse
+          - name: DBSQL_WAREHOUSE_ID
+            value_from: dbsql-warehouse
+          - name: DEMO_CATALOG
+            value: ${var.catalog}
+          - name: DEMO_SCHEMA
+            value: ${var.schema}
+      resources:
+        - name: rt-warehouse
+          sql_warehouse:
+            id: ${var.rt_warehouse_id}
+            permission: CAN_USE
+        - name: dbsql-warehouse
+          sql_warehouse:
+            id: ${var.dbsql_warehouse_id}
+            permission: CAN_USE

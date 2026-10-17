@@ -1,0 +1,29 @@
+resources:
+  jobs:
+    medprime_setup:
+      name: medprime-setup-${var.schema}
+      description: "Cria tabelas, dados sintéticos (~115M respostas), gold e grants do app. Idempotente."
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+        - name: app_name
+          default: ${var.app_name}
+        - name: recriar
+          default: "false"
+      tasks:
+        - task_key: dados
+          notebook_task:
+            notebook_path: ../src/setup/setup_dados.py
+        - task_key: gold
+          depends_on:
+            - task_key: dados
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.medprime_gold.id}
+            full_refresh: true
+        - task_key: grants_app
+          depends_on:
+            - task_key: gold
+          notebook_task:
+            notebook_path: ../src/setup/grants.py

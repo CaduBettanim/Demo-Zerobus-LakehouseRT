@@ -1,0 +1,12 @@
+# Copie para databricks.local.yml (ignorado pelo git) e ajuste para o seu ambiente.
+targets:
+  meu_ambiente:
+    mode: development
+    presets:
+      name_prefix: ""
+    workspace:
+      host: https://<seu-workspace>.cloud.databricks.com
+    variables:
+      catalog: <seu_catalogo>
+      # schema: rt_simulado
+      # app_name: medprime-rt-simulado

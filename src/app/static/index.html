@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MedPrime Residência · Simulado Nacional ao vivo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230e7490'/><text x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='white' font-family='Arial'>M</text></svg>">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="topo">
+  <div class="marca">
+    <div class="logo">M<span>+</span></div>
+    <div>
+      <div class="marca-nome">MedPrime <b>Residência</b></div>
+      <div class="marca-sub">Simulado Nacional R1 · Outubro/2026</div>
+    </div>
+  </div>
+  <div class="status">
+    <span id="pill" class="pill off">● AGUARDANDO</span>
+    <span class="stat"><b id="st-taxa">0</b> respostas/s via Zerobus</span>
+    <span class="stat"><b id="st-env">0</b> enviadas</span>
+    <span class="stat"><b id="st-vol">–</b> respostas no Lakehouse</span>
+  </div>
+  <div class="controles">
+    <label>Alunos <select id="sel-part"><option value="10000">10 mil</option><option value="25000">25 mil</option><option value="50000" selected>50 mil</option></select></label>
+    <label>Ritmo <select id="sel-taxa"><option value="1000">1 mil/s</option><option value="3000">3 mil/s</option><option value="6000" selected>6 mil/s</option><option value="10000">10 mil/s</option></select></label>
+    <button id="btn-abrir" class="btn prim">▶ Abrir prova</button>
+    <button id="btn-pausar" class="btn">❚❚</button>
+    <button id="btn-encerrar" class="btn">■</button>
+  </div>
+</header>
+
+<nav class="abas">
+  <button data-aba="vivo" class="ativa">Coordenação ao vivo</button>
+  <button data-aba="aluno">Painel do aluno</button>
+  <button data-aba="questoes">Raio-X das questões <span id="badge-susp" class="badge-susp hidden">!</span></button>
+  <button data-aba="escala">Escala</button>
+  <button data-aba="comparar">Lakehouse//RT vs DBSQL</button>
+  <button data-aba="arq">Arquitetura</button>
+</nav>
+
+<main>
+  <!-- ================= AO VIVO ================= -->
+  <section id="aba-vivo" class="aba ativa">
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-l">Alunos em prova</div><div class="kpi-v" id="k-online">–</div><div class="kpi-s" id="k-online-s"></div></div>
+      <div class="kpi"><div class="kpi-l">Respostas recebidas</div><div class="kpi-v" id="k-resp">–</div><div class="kpi-s" id="k-resp-s"></div></div>
+      <div class="kpi"><div class="kpi-l">Respostas/s (últimos 10 s)</div><div class="kpi-v" id="k-taxa">–</div><div class="kpi-s">medido no Lakehouse</div></div>
+      <div class="kpi"><div class="kpi-l">Aproveitamento nacional</div><div class="kpi-v" id="k-aprov">–</div><div class="kpi-s">ao vivo</div></div>
+      <div class="kpi"><div class="kpi-l">Finalizaram a prova</div><div class="kpi-v" id="k-fim">–</div><div class="kpi-s" id="k-fim-s"></div></div>
+      <div class="kpi destaque"><div class="kpi-l">Idade do dado</div><div class="kpi-v" id="k-fresh">–</div><div class="kpi-s">da resposta do aluno até esta tela</div></div>
+    </div>
+    <div class="grade3">
+      <div class="card">
+        <div class="card-h"><h3>Respostas por segundo · últimos 60 s</h3><span class="lat" id="lat-por_segundo"></span></div>
+        <div id="ch-seg" class="chart"></div>
+        <div class="card-h mt"><h3>Top faculdades (aproveitamento)</h3><span class="lat" id="lat-faculdades"></span></div>
+        <table class="tab" id="tb-fac"></table>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Brasil · aproveitamento por UF</h3><span class="lat" id="lat-por_uf"></span></div>
+        <div id="mapa" class="mapa"></div>
+        <div class="legenda"><span>menor</span><i class="esc"></i><span>maior</span></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Ranking nacional · Top 10</h3><span class="lat" id="lat-top10"></span></div>
+        <table class="tab" id="tb-top"></table>
+        <p class="nota">Ranking recalculado sobre todas as respostas da prova a cada atualização, sem pré-agregação.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ALUNO ================= -->
+  <section id="aba-aluno" class="aba">
+    <div class="barra-aluno">
+      <input id="busca" placeholder="Buscar aluno pelo nome…" autocomplete="off">
+      <div id="busca-res" class="busca-res hidden"></div>
+      <button id="btn-aleatorio" class="btn prim">🎲 Aluno aleatório</button>
+      <label class="chk"><input type="checkbox" id="auto-aluno" checked> atualizar a cada 3 s</label>
+      <span class="lat" id="lat-aluno"></span>
+    </div>
+    <div id="aluno-vazio" class="vazio">Abra a prova e escolha um aluno para ver a posição dele <b>agora</b>.</div>
+    <div id="aluno-painel" class="hidden">
+      <div class="grade-aluno">
+        <div class="card celular">
+          <div class="cel-topo">App MedPrime · Simulado ao vivo</div>
+          <div class="cel-nome" id="al-nome"></div>
+          <div class="cel-sub" id="al-sub"></div>
+          <div class="cel-pos"><span>Você está em</span><b id="al-pos"></b><span id="al-total"></span></div>
+          <div class="cel-row"><div><small>Na sua faculdade</small><b id="al-posfac"></b></div><div><small>Percentil</small><b id="al-pct"></b></div></div>
+          <div class="cel-row"><div><small>Acertos</small><b id="al-ac"></b></div><div><small>Respondidas</small><b id="al-resp"></b></div></div>
+          <div class="barra"><i id="al-bar"></i></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Desempenho por grande área · agora</h3></div>
+          <div id="ch-areas"></div>
+          <div class="leg"><span class="sw sw-a"></span>Aluno <span class="sw sw-f"></span>Faculdade <span class="sw sw-n"></span>Nacional</div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Evolução nos últimos 24 simulados</h3></div>
+          <div id="ch-hist" class="chart"></div>
+          <div class="leg"><span class="sw sw-a"></span>Nota do aluno <span class="sw sw-n"></span>Média nacional</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= QUESTÕES ================= -->
+  <section id="aba-questoes" class="aba">
+    <div class="grade-q">
+      <div class="card">
+        <div class="card-h"><h3>120 questões · % de acerto ao vivo</h3><span class="lat" id="lat-questoes"></span></div>
+        <div id="q-grid" class="q-grid"></div>
+        <div class="legenda"><span>0%</span><i class="esc"></i><span>100%</span> <span class="susp-leg">⚠ padrão de resposta suspeito</span></div>
+      </div>
+      <div class="card" id="q-det">
+        <div class="vazio">Clique em uma questão para ver a distribuição das alternativas.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ESCALA ================= -->
+  <section id="aba-escala" class="aba">
+    <div class="barra-aluno">
+      <label>Usuários simultâneos <select id="esc-u"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></label>
+      <label>Duração <select id="esc-d"><option value="30" selected>30 s</option><option value="60">60 s</option><option value="120">120 s</option></select></label>
+      <button id="btn-escala" class="btn prim">▶ Disparar usuários</button>
+      <span class="nota">Cada usuário abre o app e consulta o próprio desempenho, sem cache e em loop.</span>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-l">Usuários simultâneos</div><div class="kpi-v" id="e-u">0</div></div>
+      <div class="kpi"><div class="kpi-l">Consultas/s</div><div class="kpi-v" id="e-qps">0</div></div>
+      <div class="kpi"><div class="kpi-l">Latência p50</div><div class="kpi-v" id="e-p50">–</div></div>
+      <div class="kpi"><div class="kpi-l">Latência p95</div><div class="kpi-v" id="e-p95">–</div></div>
+      <div class="kpi"><div class="kpi-l">Consultas executadas</div><div class="kpi-v" id="e-ok">0</div></div>
+      <div class="kpi"><div class="kpi-l">Erros</div><div class="kpi-v" id="e-err">0</div></div>
+    </div>
+    <div class="grade2">
+      <div class="card"><div class="card-h"><h3>Consultas por segundo</h3></div><div id="ch-qps" class="chart alto"></div></div>
+      <div class="card"><div class="card-h"><h3>Latência ponta a ponta (ms) · <span style="color:var(--rt)">p50</span> e <span style="color:#f59e0b">p95</span></h3></div><div id="ch-lat" class="chart alto"></div></div>
+    </div>
+    <div class="info hidden" id="esc-srv"></div>
+    <pre class="sql" id="esc-sql"></pre>
+  </section>
+
+  <!-- ================= COMPARAR ================= -->
+  <section id="aba-comparar" class="aba">
+    <div class="barra-aluno">
+      <button class="btn prim" data-cmp="aluno">Consulta do app do aluno (lookup)</button>
+      <button class="btn prim" data-cmp="posicao">Posição no ranking nacional (agregação)</button>
+      <span class="nota">Mesma consulta e mesmos dados, executada lado a lado nos dois warehouses (sem cache de resultado, com um aluno diferente a cada execução).</span>
+    </div>
+    <div class="grade2">
+      <div class="card"><div class="card-h"><h3>Tempo por execução (ms)</h3></div><div id="cmp-ch" class="chart alto"><div class="vazio">Escolha uma consulta acima.</div></div></div>
+      <div class="card"><div class="card-h"><h3>Mediana</h3></div><div id="cmp-res" class="cmp-res"></div><pre class="sql" id="cmp-sql"></pre></div>
+    </div>
+  </section>
+
+  <!-- ================= ARQUITETURA ================= -->
+  <section id="aba-arq" class="aba">
+    <div class="card arq">
+      <svg viewBox="0 0 1200 430" id="arq-svg">
+        <defs>
+          <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#94a3b8"/></marker>
+        </defs>
+        <path class="fio" d="M210,210 L270,210"/><path class="fio" d="M460,210 L520,210"/>
+        <path class="fio" d="M730,210 L790,210"/><path class="fio" d="M625,310 L625,340"/>
+        <path class="fio" d="M980,190 C1000,190 1005,100 1030,100"/><path class="fio" d="M980,210 L1030,210"/>
+        <path class="fio" d="M980,230 C1000,230 1005,320 1030,320"/><path class="fio" d="M885,90 C885,110 700,90 680,110"/>
+        <circle r="5" class="bola"><animateMotion dur="1.6s" repeatCount="indefinite" path="M210,210 L270,210 L460,210 L520,210 L730,210 L790,210 L980,210 L1030,210"/></circle>
+        <circle r="5" class="bola"><animateMotion dur="1.6s" begin="0.5s" repeatCount="indefinite" path="M210,210 L270,210 L460,210 L520,210 L730,210 L790,210 L980,190 C1000,190 1005,100 1030,100"/></circle>
+        <circle r="5" class="bola"><animateMotion dur="1.6s" begin="1s" repeatCount="indefinite" path="M210,210 L270,210 L460,210 L520,210 L730,210 L790,210 L980,230 C1000,230 1005,320 1030,320"/></circle>
+        <g class="nodo"><rect x="20" y="150" width="190" height="120" rx="14"/><text x="115" y="190" class="t1">50 mil alunos</text><text x="115" y="214" class="t2">app e web</text><text x="115" y="236" class="t2">respostas · login · fim</text></g>
+        <g class="nodo dbx"><rect x="270" y="150" width="190" height="120" rx="14"/><text x="365" y="190" class="t1">Zerobus Ingest</text><text x="365" y="214" class="t2">gRPC direto para Delta</text><text x="365" y="236" class="t2">sem Kafka e sem cluster</text></g>
+        <g class="nodo dbx"><rect x="520" y="110" width="210" height="200" rx="14"/><text x="625" y="150" class="t1">Delta Lake · Unity Catalog</text><text x="625" y="178" class="t2">respostas (115M+ linhas)</text><text x="625" y="200" class="t2">sessões · questões · alunos</text><text x="625" y="222" class="t2">Liquid Clustering</text><text x="625" y="244" class="t2">Predictive Optimization</text><text x="625" y="280" class="t3">uma única cópia dos dados</text></g>
+        <g class="nodo dbx"><rect x="520" y="340" width="210" height="70" rx="14"/><text x="625" y="370" class="t1">Lakeflow SDP</text><text x="625" y="393" class="t2">gold histórica (MVs)</text></g>
+        <g class="nodo rt"><rect x="790" y="150" width="190" height="120" rx="14"/><text x="885" y="190" class="t1">Lakehouse//RT</text><text x="885" y="214" class="t2">SQL sub-segundo</text><text x="885" y="236" class="t2">alta concorrência</text></g>
+        <g class="nodo"><rect x="1030" y="60" width="150" height="80" rx="14"/><text x="1105" y="96" class="t1">App do aluno</text><text x="1105" y="118" class="t2">posição agora</text></g>
+        <g class="nodo"><rect x="1030" y="170" width="150" height="80" rx="14"/><text x="1105" y="206" class="t1">Coordenação</text><text x="1105" y="228" class="t2">painel ao vivo</text></g>
+        <g class="nodo"><rect x="1030" y="280" width="150" height="80" rx="14"/><text x="1105" y="316" class="t1">Banca</text><text x="1105" y="338" class="t2">raio-X das questões</text></g>
+        <g class="nodo dbx"><rect x="790" y="20" width="190" height="70" rx="14"/><text x="885" y="50" class="t1">DBSQL</text><text x="885" y="72" class="t2">escritas · Genie · BI</text></g>
+      </svg>
+      <div class="arq-txt">
+        <div><b>Sem banco de serving à parte.</b> O app consulta as mesmas tabelas Delta que recebem as respostas. Não tem cópia, ETL reverso nem cache.</div>
+        <div><b>Do clique do aluno à tela em segundos.</b> O Zerobus grava direto no Delta e o Lakehouse//RT lê o commit mais recente.</div>
+        <div><b>Governança única.</b> Unity Catalog para tudo: tabelas, permissões e linhagem, do histórico ao ao vivo.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="modal" class="modal hidden"><div class="modal-box" id="modal-box"></div></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

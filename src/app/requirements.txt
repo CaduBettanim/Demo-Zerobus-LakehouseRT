@@ -1,0 +1,6 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+httpx>=0.27
+numpy>=1.26
+databricks-sdk>=0.40
+databricks-zerobus-ingest-sdk>=1.10.0
