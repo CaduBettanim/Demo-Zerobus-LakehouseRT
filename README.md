@@ -34,8 +34,12 @@ O bundle **não cria** os warehouses: ele os encontra **pelo nome** (`lookup`).
 | `lakehouse-rt` | **Real-Time** (Compute → SQL Warehouses → Create → tipo *Real-Time*), tamanho Small | Todas as leituras do app |
 | `Serverless Starter Warehouse` | **Serverless** (Pro), Small | Escritas da demo (anulação, rodadas, limpeza) e lado "DBSQL" do comparativo. O RT é **somente leitura** |
 
-Se os seus warehouses tiverem outros nomes, ajuste o `lookup` em `databricks.yml` ou passe os IDs com
-`--var rt_warehouse_id=<id> --var dbsql_warehouse_id=<id>`.
+> ⚠️ **Os nomes importam.** Se o warehouse Real-Time não se chamar exatamente `lakehouse-rt`, o `validate` falha com
+> `failed to resolve warehouse: lakehouse-rt … does not exist`. Nesse caso, **crie o warehouse com esse nome** ou passe o ID
+> em **todos** os comandos (`validate`, `deploy` e `run`):
+> `--var rt_warehouse_id=<id>` (e `--var dbsql_warehouse_id=<id>` se o DBSQL tiver outro nome).
+> O ID aparece em **Compute → SQL Warehouses → \<warehouse\> → Connection details** (final do *HTTP path*) ou em
+> `databricks warehouses list -p <profile>`.
 
 ### Permissões de quem faz o deploy
 - `USE CATALOG` e `CREATE SCHEMA` no catálogo de destino. O job de setup cria o schema e as tabelas.

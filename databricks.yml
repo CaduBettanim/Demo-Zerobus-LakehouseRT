@@ -7,10 +7,9 @@ include:
   # Targets locais (não versionados): copie databricks.local.yml.example para databricks.local.yml
   - "*.local.yml"
 
+# .venv, __pycache__ etc. já ficam fora do sync pelo .gitignore
 sync:
   exclude:
-    - .venv
-    - "**/__pycache__"
     - docs
     - scripts
 
